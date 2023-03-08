@@ -51,7 +51,10 @@ class s3_bucket_public_access(Check):
                                 and statement["Effect"] == "Allow"
                             ):
                                 report.status = "FAIL"
-                                report.status_extended = f"S3 Bucket {bucket.name} has public access due to bucket policy."
+                                if "Condition" not in statement:
+                                    report.status_extended = f"S3 Bucket {bucket.name} has public access due to bucket policy."
+                                else:
+                                    report.status_extended = f"S3 Bucket {bucket.name} policy with public access but has a Condition."
                             else:
                                 if (
                                     "Principal" in statement
@@ -65,6 +68,9 @@ class s3_bucket_public_access(Check):
                                     for principal_arn in principals:
                                         if principal_arn == "*":
                                             report.status = "FAIL"
-                                            report.status_extended = f"S3 Bucket {bucket.name} has public access due to bucket policy."
+                                            if "Condition" not in statement:
+                                                report.status_extended = f"S3 Bucket {bucket.name} has public access due to bucket policy."
+                                            else:
+                                                report.status_extended = f"S3 Bucket {bucket.name} policy with public access but has a Condition."
                 findings.append(report)
         return findings
